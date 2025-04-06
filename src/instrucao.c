@@ -6,16 +6,22 @@
 
 char* decimalParaBinario(int numero, int bits) {
     char *binario = (char*) malloc((bits + 1) * sizeof(char)); // +1 pro '\0'
+    if (binario == NULL) return NULL;
 
-    if (binario == NULL) {
-        return NULL; // erro de alocação
+    // Ajusta para complemento de dois se for negativo
+    unsigned int valor;
+    if (numero < 0) {
+        valor = (1U << bits) + numero;  // equivale a: 2^bits + numero
+    } else {
+        valor = numero;
     }
 
+    // Converte para binário
     for (int i = bits - 1; i >= 0; i--) {
-        binario[bits - 1 - i] = ((numero >> i) & 1) ? '1' : '0';
+        binario[bits - 1 - i] = ((valor >> i) & 1) ? '1' : '0';
     }
 
-    binario[bits] = '\0'; // termina a string
+    binario[bits] = '\0'; // finaliza string
 
     return binario;
 }
@@ -79,7 +85,6 @@ void preencherInstrucaoR(InstrucaoFormatoR *instrucaoR, char *linha) {
 // Formato I -> addi, andi, ori, lb, lh, lw
 void preencherInstrucaoI(InstrucaoFormatoI *instrucaoI, char *linha) {
     instrucaoI->formato = I;
-    strcpy(instrucaoI->opcode, "0010011");
 
     char *palavra = strtok(linha, " ,");
     if (palavra == NULL) return;
@@ -88,35 +93,67 @@ void preencherInstrucaoI(InstrucaoFormatoI *instrucaoI, char *linha) {
     strcpy(instrucao, palavra);
 
     char *rd_str = strtok(NULL, " ,");
-    char *rs1_str = strtok(NULL, " ,");
-    char *imm_str = strtok(NULL, " ,");
-
-    if (rd_str == NULL || rs1_str == NULL || imm_str == NULL) return;
+    if (rd_str == NULL) return;
 
     int rd = atoi(rd_str + 1);
-    int rs1 = atoi(rs1_str + 1);
-    int imediato = atoi(imm_str);  // direto
+    char *rs1_str = NULL;
+    int rs1, imediato;
 
-    strcpy(instrucaoI->rd, decimalParaBinario(rd, 5));
-    strcpy(instrucaoI->rs1, decimalParaBinario(rs1, 5));
-    strcpy(instrucaoI->imm, decimalParaBinario(imediato, 12));
+    if (strcmp(instrucao, "lb") == 0 || strcmp(instrucao, "lh") == 0 || strcmp(instrucao, "lw") == 0) {
+        // Lê imediato e registrador do formato offset(rs1)
+        char *offset_str = strtok(NULL, "(");
+        rs1_str = strtok(NULL, ")");
+        if (offset_str == NULL || rs1_str == NULL) return;
 
+        imediato = atoi(offset_str);
+        rs1 = atoi(rs1_str + 1);
+    } else {
+        // Padrão: instr rd, rs1, imm
+        rs1_str = strtok(NULL, " ,");
+        char *imm_str = strtok(NULL, " ,");
+        if (rs1_str == NULL || imm_str == NULL) return;
+
+        rs1 = atoi(rs1_str + 1);
+        imediato = atoi(imm_str);
+    }
+
+    // Converter para binário
+    char *rd_bin = decimalParaBinario(rd, 5);
+    char *rs1_bin = decimalParaBinario(rs1, 5);
+    char *imm_bin = decimalParaBinario(imediato, 12);
+
+    strcpy(instrucaoI->rd, rd_bin);
+    strcpy(instrucaoI->rs1, rs1_bin);
+    strcpy(instrucaoI->imm, imm_bin);
+
+    free(rd_bin);
+    free(rs1_bin);
+    free(imm_bin);
+
+    // Opcode e funct3
     if (strcmp(instrucao, "addi") == 0) {
+        strcpy(instrucaoI->opcode, "0010011");
         strcpy(instrucaoI->funct3, "000");
     } else if (strcmp(instrucao, "andi") == 0) {
+        strcpy(instrucaoI->opcode, "0010011");
         strcpy(instrucaoI->funct3, "111");
     } else if (strcmp(instrucao, "ori") == 0) {
+        strcpy(instrucaoI->opcode, "0010011");
         strcpy(instrucaoI->funct3, "110");
     } else if (strcmp(instrucao, "lb") == 0) {
+        strcpy(instrucaoI->opcode, "0000011");
         strcpy(instrucaoI->funct3, "000");
     } else if (strcmp(instrucao, "lh") == 0) {
+        strcpy(instrucaoI->opcode, "0000011");
         strcpy(instrucaoI->funct3, "001");
     } else if (strcmp(instrucao, "lw") == 0) {
+        strcpy(instrucaoI->opcode, "0000011");
         strcpy(instrucaoI->funct3, "010");
     } else {
         printf("Instrucao I desconhecida: %s\n", instrucao);
     }
 }
+
 
 // Formato S -> sb, sh, sw
 void preencherInstrucaoS(InstrucaoFormatoS *instrucaoS, char *linha) {
@@ -167,7 +204,6 @@ void preencherInstrucaoS(InstrucaoFormatoS *instrucaoS, char *linha) {
 // Formato B -> beq, bne
 void preencherInstrucaoB(InstrucaoFormatoB *instrucaoB, char *linha) {
     instrucaoB->formato = B;
-    strcpy(instrucaoB->opcode, "1100011");
 
     char *palavra = strtok(linha, " ,");
     if (palavra == NULL) return;
@@ -177,42 +213,48 @@ void preencherInstrucaoB(InstrucaoFormatoB *instrucaoB, char *linha) {
 
     char *rs1_str = strtok(NULL, " ,");
     char *rs2_str = strtok(NULL, " ,");
-    char *offset_str = strtok(NULL, " ,");
+    char *imm_str = strtok(NULL, " ,");
 
-    if (!rs1_str || !rs2_str || !offset_str) return;
+    if (rs1_str == NULL || rs2_str == NULL || imm_str == NULL) return;
 
     int rs1 = atoi(rs1_str + 1);
     int rs2 = atoi(rs2_str + 1);
-    int offset = atoi(offset_str);
+    int imediato = atoi(imm_str);
 
-    char *offset_bin = decimalParaBinario(offset, 13); // B usa 13 bits no total
+    // Gera binário de 13 bits para extrair os campos separados (bit 12 até bit 1)
+    char *imediatoBin = decimalParaBinario(imediato, 13); // usa 13 para facilitar extração
 
-    instrucaoB->imm1[0] = offset_bin[0];
+    // Preenche campos com base no layout do formato B
+    // imm[12] = bit 12 (bit mais à esquerda)
+    strncpy(instrucaoB->imm1, &imediatoBin[0], 1);
+    instrucaoB->imm1[1] = '\0';
 
-    strncpy(instrucaoB->imm2, offset_bin + 1, 6); // bits 4:1
+    // imm[10:5] = bits 1 a 6
+    strncpy(instrucaoB->imm2, &imediatoBin[1], 6);
     instrucaoB->imm2[6] = '\0';
+
+    // imm[4:1] = bits 7 a 10
+    strncpy(instrucaoB->imm3, &imediatoBin[7], 4);
+    instrucaoB->imm3[4] = '\0';
+
+    // imm[11] = bit 11
+    strncpy(instrucaoB->imm4, &imediatoBin[11], 1);
+    instrucaoB->imm4[1] = '\0';
 
     strcpy(instrucaoB->rs1, decimalParaBinario(rs1, 5));
     strcpy(instrucaoB->rs2, decimalParaBinario(rs2, 5));
 
-    strncpy(instrucaoB->imm3, offset_bin + 7, 4);       // bits 4:1
-    instrucaoB->imm3[4] = '\0';
-
-    instrucaoB->imm4[0] = offset_bin[11];               // bit 11
-    instrucaoB->imm4[1] = '\0';
-
-    free(offset_bin);
-    
-    // B format:
-    // imm[12|10:5] | rs2 | rs1 | funct3 | imm[4:1|11]
-
     if (strcmp(instrucao, "beq") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
         strcpy(instrucaoB->funct3, "000");
     } else if (strcmp(instrucao, "bne") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
         strcpy(instrucaoB->funct3, "001");
     } else {
         printf("Instrucao B desconhecida: %s\n", instrucao);
     }
+
+    free(imediatoBin); // libera memória usada
 }
 
 // teste imprimir
