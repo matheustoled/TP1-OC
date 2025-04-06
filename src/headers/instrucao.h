@@ -49,15 +49,22 @@ typedef struct InstucaoFormatoB {
     char rs1[6];
     char funct3[4];
     char imm3[5];
-    char imm5[2];
+    char imm4[2];
     char opcode[8];
 } InstrucaoFormatoB;
 
 char *decimalParaBinario(int numero, int bits);
+
 void preencherInstrucaoR(InstrucaoFormatoR *instrucaoR, char *linha);
 void preencherInstrucaoI(InstrucaoFormatoI *instrucaoI, char *linha);
 void preencherInstrucaoS(InstrucaoFormatoS *instrucaoS, char *linha);
 void preencherInstrucaoB(InstrucaoFormatoB *instrucaoB, char *linha);
-void imprimirInstrucaoR(InstrucaoFormatoR *instrucao);
+
+char *gerarInstrucaoBinariaR(InstrucaoFormatoR *instrucao);
+char *gerarInstrucaoBinariaI(InstrucaoFormatoI *instrucao);
+char *gerarInstrucaoBinariaS(InstrucaoFormatoS *instrucao);
+char *gerarInstrucaoBinariaB(InstrucaoFormatoB *instrucao);
+
+void imprimirInstrucaoBionaria(FormatoInstrucao formato, void *instrucao);
 
 #endif
