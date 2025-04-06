@@ -2,12 +2,63 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "./headers/lista_instrucoes.h"
+
 /*
 argc -> argument count (numero de argumentos recebidos)
 argv -> argument vector (array com cada um dos argumentos, todos como string)
 */
 
-int tipoSaida(int argc, char *argv[]){
+void definirTipoInstrucao(char *linha){
+    char *lista_instrucoes_r[] = {"add", "sub", "and", "or", "xor", "sll", "srl"};
+    char *lista_instrucoes_i[] = {"addi", "andi", "ori", "lb", "lh", "lw"};
+    char *lista_instrucoes_s[] = {"sb", "sh", "sw"};
+    char *lista_instrucoes_b[] = {"beq", "bne"};
+
+    // Fazemos uma cópia da linha porque strtok modifica a string original
+    char linha_copia[55];
+    strcpy(linha_copia, linha);
+
+    // Pegamos a primeira palavra (instrução)
+    char *palavra = strtok(linha_copia, " ");
+    if (palavra == NULL) return;
+
+    // Guardamos a instrução original em uma string separada
+    char instrucao_original[10];
+    strcpy(instrucao_original, palavra);
+
+    for (int i = 0; i<7; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_r[i]) == 0) {
+            InstrucaoFormatoR instrucaoR;
+            preencherInstrucaoR(&instrucaoR, linha);
+            imprimirInstrucaoR(&instrucaoR);
+        }
+    }
+    for (int i = 0; i<6; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_i[i]) == 0) {
+            InstrucaoFormatoI instrucaoI;
+            preencherInstrucaoI(&instrucaoI, linha);
+        }
+    }
+    for (int i = 0; i<3; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_s[i]) == 0) {
+            InstrucaoFormatoS instrucaoS;
+            preencherInstrucaoS(&instrucaoS, linha);
+        }
+    }
+    for (int i = 0; i<2; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_b[i]) == 0) {
+            InstrucaoFormatoB instrucaoB;
+            preencherInstrucaoB(&instrucaoB, linha);
+        }
+    }
+}
+
+int tipoSaida(int argc, char *argv[]) {
+
+    // Lista lista;
+    // InicializarLista(&lista); // FIXME: Decidir
+
     if (argc != 2 && argc != 4) {
         printf("Entrada inválida.\n");
         printf("  %s entrada.asm               (modo terminal)\n", argv[0]);
@@ -49,11 +100,15 @@ int tipoSaida(int argc, char *argv[]){
         }
         if (modo_operacao) {
             printf("Linha lida: %s\n", linha);
+            definirTipoInstrucao(linha);
+            // InserirFim(&lista, 40); // FIXME: Mudar funcao e parametros
         } else {
             // teste -> fprintf(stderr, "Escrevendo no arquivo: %s\n", linha);
             fprintf(saida, "%s\n", linha);
         }
     }
+
+    // ImprimirLista(&lista);
 
     fclose(entrada);
     if (saida != NULL) fclose(saida);
