@@ -9,7 +9,7 @@ argc -> argument count (numero de argumentos recebidos)
 argv -> argument vector (array com cada um dos argumentos, todos como string)
 */
 
-void definirTipoInstrucao(char *linha){
+void definirTipoInstrucao1(char *linha){
     char *lista_instrucoes_r[] = {"add", "sub", "and", "or", "xor", "sll", "srl"};
     char *lista_instrucoes_i[] = {"addi", "andi", "ori", "lb", "lh", "lw"};
     char *lista_instrucoes_s[] = {"sb", "sh", "sw"};
@@ -17,15 +17,12 @@ void definirTipoInstrucao(char *linha){
 
     // Minhas instrucoes -> char *lista_isntrucoes_tp[] = {"lb", "sb", "add", "and", "ori", "sll", "bne"};
 
-    // Fazemos uma cópia da linha porque strtok modifica a string original
     char linha_copia[55];
     strcpy(linha_copia, linha);
 
-    // Pegamos a primeira palavra (instrução)
     char *palavra = strtok(linha_copia, " ");
     if (palavra == NULL) return;
 
-    // Guardamos a instrução original em uma string separada
     char instrucao_original[10];
     strcpy(instrucao_original, palavra);
 
@@ -34,7 +31,7 @@ void definirTipoInstrucao(char *linha){
             InstrucaoFormatoR instrucaoR;
             preencherInstrucaoR(&instrucaoR, linha);
             // printf("Instrucao R definida\n");
-            imprimirInstrucaoBionaria(instrucaoR.formato, &instrucaoR);
+            imprimirInstrucaoBionaria1(instrucaoR.formato, &instrucaoR);
         }
     }
     for (int i = 0; i<6; i++) {
@@ -42,7 +39,7 @@ void definirTipoInstrucao(char *linha){
             InstrucaoFormatoI instrucaoI;
             preencherInstrucaoI(&instrucaoI, linha);
             // printf("Instrucao I definida\n");
-            imprimirInstrucaoBionaria(instrucaoI.formato, &instrucaoI);
+            imprimirInstrucaoBionaria1(instrucaoI.formato, &instrucaoI);
         }
     }
     for (int i = 0; i<3; i++) {
@@ -50,7 +47,7 @@ void definirTipoInstrucao(char *linha){
             InstrucaoFormatoS instrucaoS;
             preencherInstrucaoS(&instrucaoS, linha);
             // printf("Instrucao S definida\n");
-            imprimirInstrucaoBionaria(instrucaoS.formato, &instrucaoS);
+            imprimirInstrucaoBionaria1(instrucaoS.formato, &instrucaoS);
         }
     }
     for (int i = 0; i<2; i++) {
@@ -58,7 +55,58 @@ void definirTipoInstrucao(char *linha){
             InstrucaoFormatoB instrucaoB;
             preencherInstrucaoB(&instrucaoB, linha);
             // printf("Instrucao B definida\n");
-            imprimirInstrucaoBionaria(instrucaoB.formato, &instrucaoB);
+            imprimirInstrucaoBionaria1(instrucaoB.formato, &instrucaoB);
+        }
+    }
+}
+
+void definirTipoInstrucao2(char *linha, FILE *saida){
+    char *lista_instrucoes_r[] = {"add", "sub", "and", "or", "xor", "sll", "srl"};
+    char *lista_instrucoes_i[] = {"addi", "andi", "ori", "lb", "lh", "lw"};
+    char *lista_instrucoes_s[] = {"sb", "sh", "sw"};
+    char *lista_instrucoes_b[] = {"beq", "bne"};
+
+    // Minhas instrucoes -> char *lista_isntrucoes_tp[] = {"lb", "sb", "add", "and", "ori", "sll", "bne"};
+
+    char linha_copia[55];
+    strcpy(linha_copia, linha);
+
+    char *palavra = strtok(linha_copia, " ");
+    if (palavra == NULL) return;
+
+    char instrucao_original[10];
+    strcpy(instrucao_original, palavra);
+
+    for (int i = 0; i<7; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_r[i]) == 0) {
+            InstrucaoFormatoR instrucaoR;
+            preencherInstrucaoR(&instrucaoR, linha);
+            // printf("Instrucao R definida\n");
+            imprimirInstrucaoBionaria2(instrucaoR.formato, &instrucaoR, saida);
+        }
+    }
+    for (int i = 0; i<6; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_i[i]) == 0) {
+            InstrucaoFormatoI instrucaoI;
+            preencherInstrucaoI(&instrucaoI, linha);
+            // printf("Instrucao I definida\n");
+            imprimirInstrucaoBionaria2(instrucaoI.formato, &instrucaoI, saida);
+        }
+    }
+    for (int i = 0; i<3; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_s[i]) == 0) {
+            InstrucaoFormatoS instrucaoS;
+            preencherInstrucaoS(&instrucaoS, linha);
+            // printf("Instrucao S definida\n");
+            imprimirInstrucaoBionaria2(instrucaoS.formato, &instrucaoS, saida);
+        }
+    }
+    for (int i = 0; i<2; i++) {
+        if (strcmp(instrucao_original, lista_instrucoes_b[i]) == 0) {
+            InstrucaoFormatoB instrucaoB;
+            preencherInstrucaoB(&instrucaoB, linha);
+            // printf("Instrucao B definida\n");
+            imprimirInstrucaoBionaria2(instrucaoB.formato, &instrucaoB, saida);
         }
     }
 }
@@ -105,15 +153,13 @@ int tipoSaida(int argc, char *argv[]) {
             linha[len - 1] = '\0';
         }
         if (modo_operacao) {
-            printf("Linha lida: %s\n", linha);
-            definirTipoInstrucao(linha);
+            // teste printf("Linha lida: %s\n", linha);
+            definirTipoInstrucao1(linha);
         } else {
             // teste -> fprintf(stderr, "Escrevendo no arquivo: %s\n", linha);
-            fprintf(saida, "%s\n", linha);
+            definirTipoInstrucao2(linha, saida);
         }
     }
-
-    // ImprimirLista(&lista);
 
     fclose(entrada);
     if (saida != NULL) fclose(saida);

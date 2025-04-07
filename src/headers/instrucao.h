@@ -65,6 +65,7 @@ char *gerarInstrucaoBinariaI(InstrucaoFormatoI *instrucao);
 char *gerarInstrucaoBinariaS(InstrucaoFormatoS *instrucao);
 char *gerarInstrucaoBinariaB(InstrucaoFormatoB *instrucao);
 
-void imprimirInstrucaoBionaria(FormatoInstrucao formato, void *instrucao);
+void imprimirInstrucaoBionaria1(FormatoInstrucao formato, void *instrucao);
+void imprimirInstrucaoBionaria2(FormatoInstrucao formato, void *instrucao, FILE *saida);
 
 #endif
