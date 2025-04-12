@@ -1,30 +1,82 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "./headers/instrucao.h"
 
+// Converte decimal para binário
 char* decimalParaBinario(int numero, int bits) {
     char *binario = (char*) malloc((bits + 1) * sizeof(char)); // +1 pro '\0'
     if (binario == NULL) return NULL;
 
-    // Ajusta para complemento de dois se for negativo
-    unsigned int valor;
-    if (numero < 0) {
-        valor = (1U << bits) + numero;  // equivale a: 2^bits + numero
-    } else {
-        valor = numero;
-    }
+    unsigned int valor = (numero < 0) ? (1U << bits) + numero : numero;
 
-    // Converte para binário
     for (int i = bits - 1; i >= 0; i--) {
         binario[bits - 1 - i] = ((valor >> i) & 1) ? '1' : '0';
     }
 
-    binario[bits] = '\0'; // finaliza string
-
+    binario[bits] = '\0';
     return binario;
 }
+
+// Detecta a base e converte
+int detectarBase(const char* str) {
+    if (str[0] == '0') {
+        if (str[1] == 'x' || str[1] == 'X') return 16;
+        if (str[1] == 'b' || str[1] == 'B') return 2;
+        if (isdigit(str[1])) return 8;
+    }
+    return 10; // decimal por padrão
+}
+
+// Função principal de verificação e conversão
+void verificarEConverter(const char* entrada, int bits) {
+    int base = detectarBase(entrada);
+    int offset = 0;
+
+    if (base == 16) offset = 2;
+    else if (base == 2) offset = 2;
+    else if (base == 8) offset = 1;
+
+    int numero = (int) strtol(entrada + offset, NULL, base);
+
+    printf("Entrada: %s\n", entrada);
+    printf("Base detectada: %d\n", base);
+    printf("Decimal equivalente: %d\n", numero);
+
+    char* bin = decimalParaBinario(numero, bits);
+    printf("Binário (%d bits): %s\n", bits, bin);
+
+    free(bin);
+}
+
+// Função auxiliar que detecta a base e chama decimalParaBinario
+char* qualquerBaseParaBinario(const char* entrada, int bits) {
+    int base = 10;
+    int offset = 0;
+
+    // Detecta a base com base no prefixo
+    if (entrada[0] == '0') {
+        if (entrada[1] == 'x' || entrada[1] == 'X') {
+            base = 16;
+            offset = 2;
+        } else if (entrada[1] == 'b' || entrada[1] == 'B') {
+            base = 2;
+            offset = 2;
+        } else if (isdigit(entrada[1])) {
+            base = 8;
+            offset = 1;
+        }
+    }
+
+    // Converte para int considerando a base detectada
+    int numero = (int) strtol(entrada + offset, NULL, base);
+
+    // Usa a função já existente
+    return decimalParaBinario(numero, bits);
+}
+
 
 // Formato R -> add, sub, and, or, xor, sll, srl
 void preencherInstrucaoR(InstrucaoFormatoR *instrucaoR, char *linha) {
@@ -73,6 +125,20 @@ void preencherInstrucaoR(InstrucaoFormatoR *instrucaoR, char *linha) {
     } else if (strcmp(instrucao, "srl") == 0) {
         strcpy(instrucaoR->funct3, "101");
         strcpy(instrucaoR->funct7, "0000000");
+
+    // A partir daqui começam as pseudo-instruções:
+    } else if (strcmp(instrucao, "neg") == 0) {
+        strcpy(instrucaoR->funct3, "000");
+        strcpy(instrucaoR->funct7, "0100000");
+    } else if (strcmp(instrucao, "snez") == 0) {
+        strcpy(instrucaoR->funct3, "011");
+        strcpy(instrucaoR->funct7, "0000000");
+    } else if (strcmp(instrucao, "sltz") == 0) {
+        strcpy(instrucaoR->funct3, "010");
+        strcpy(instrucaoR->funct7, "0000000");
+    } else if (strcmp(instrucao, "sgtz") == 0) {
+        strcpy(instrucaoR->funct3, "010");
+        strcpy(instrucaoR->funct7, "0000000");
     } else {
         printf("Instrucao R desconhecida: %s\n", instrucao);
     }
@@ -112,7 +178,7 @@ void preencherInstrucaoI(InstrucaoFormatoI *instrucaoI, char *linha) {
 
     char *rd_bin = decimalParaBinario(rd, 5);
     char *rs1_bin = decimalParaBinario(rs1, 5);
-    char *imm_bin = decimalParaBinario(imediato, 12);
+    char *imm_bin = verificarEConverter(imediato, 12);
 
     strcpy(instrucaoI->rd, rd_bin);
     strcpy(instrucaoI->rs1, rs1_bin);
@@ -140,6 +206,30 @@ void preencherInstrucaoI(InstrucaoFormatoI *instrucaoI, char *linha) {
     } else if (strcmp(instrucao, "lw") == 0) {
         strcpy(instrucaoI->opcode, "0000011");
         strcpy(instrucaoI->funct3, "010");
+
+    // A partir daqui começam as pseudo-instruções:
+    } else if (strcmp(instrucao, "li") == 0) {
+        strcpy(instrucaoI->opcode, "0010011");
+        strcpy(instrucaoI->funct3, "000");
+    } else if (strcmp(instrucao, "mv") == 0) {
+        strcpy(instrucaoI->opcode, "0010011");
+        strcpy(instrucaoI->funct3, "000");
+    } else if (strcmp(instrucao, "not") == 0) {
+        strcpy(instrucaoI->opcode, "0010011");
+        strcpy(instrucaoI->funct3, "100");
+    } else if (strcmp(instrucao, "sext.w") == 0) {
+        strcpy(instrucaoI->opcode, "0011011");
+        strcpy(instrucaoI->funct3, "000");
+    } else if (strcmp(instrucao, "seqz") == 0) {
+        strcpy(instrucaoI->opcode, "0010011");
+        strcpy(instrucaoI->funct3, "011");
+    } else if (strcmp(instrucao, "jr") == 0) {
+        strcpy(instrucaoI->opcode, "1100111");
+        strcpy(instrucaoI->funct3, "000");
+    } else if (strcmp(instrucao, "ret") == 0) {
+        strcpy(instrucaoI->opcode, "1100111");
+        strcpy(instrucaoI->funct3, "000");
+
     } else {
         printf("Instrucao I desconhecida: %s\n", instrucao);
     }
@@ -235,6 +325,26 @@ void preencherInstrucaoB(InstrucaoFormatoB *instrucaoB, char *linha) {
     } else if (strcmp(instrucao, "bne") == 0) {
         strcpy(instrucaoB->opcode, "1100011");
         strcpy(instrucaoB->funct3, "001");
+
+    // A partir daqui começam as pseudo-instruções:
+    } else if (strcmp(instrucao, "beqz") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
+        strcpy(instrucaoB->funct3, "000");
+    } else if (strcmp(instrucao, "bnez") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
+        strcpy(instrucaoB->funct3, "001");
+    } else if (strcmp(instrucao, "blez") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
+        strcpy(instrucaoB->funct3, "101");
+    } else if (strcmp(instrucao, "bgez") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
+        strcpy(instrucaoB->funct3, "101");
+    } else if (strcmp(instrucao, "bltz") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
+        strcpy(instrucaoB->funct3, "100");
+    } else if (strcmp(instrucao, "bgtz") == 0) {
+        strcpy(instrucaoB->opcode, "1100011");
+        strcpy(instrucaoB->funct3, "100");
     } else {
         printf("Instrucao B desconhecida: %s\n", instrucao);
     }
@@ -279,7 +389,7 @@ char* gerarInstrucaoBinariaR(InstrucaoFormatoR *instrucao) {
 char* gerarInstrucaoBinariaI(InstrucaoFormatoI *instrucao) {
     // printf("Iniciando traducao da instrucao I\n");
     char *instrucaoFinal = (char*) malloc(33 * sizeof(char)); // 32 bits + '\0'
-
+    
     if (instrucaoFinal == NULL) {
         printf("Erro de alocacao de memoria\n");
         return NULL;
