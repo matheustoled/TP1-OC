@@ -56,7 +56,6 @@ char* qualquerBaseParaBinario(const char* entrada, int bits) {
     int base = 10;
     int offset = 0;
     
-    printf("\nEntrou\n");
     // Detecta a base com base no prefixo
     if (entrada[0] == '0') {
         if (entrada[1] == 'x' || entrada[1] == 'X') {
@@ -70,10 +69,10 @@ char* qualquerBaseParaBinario(const char* entrada, int bits) {
             offset = 1;
         }
     }
-
     // Converte para int considerando a base detectada
     int numero = (int) strtol(entrada + offset, NULL, base);
 
+    
     // Usa a função já existente
     return decimalParaBinario(numero, bits);
 }
