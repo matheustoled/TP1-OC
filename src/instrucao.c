@@ -30,26 +30,6 @@ int detectarBase(const char* str) {
     return 10; // decimal por padrão
 }
 
-// Função principal de verificação e conversão
-void verificarEConverter(const char* entrada, int bits) {
-    int base = detectarBase(entrada);
-    int offset = 0;
-
-    if (base == 16) offset = 2;
-    else if (base == 2) offset = 2;
-    else if (base == 8) offset = 1;
-
-    int numero = (int) strtol(entrada + offset, NULL, base);
-
-    printf("Entrada: %s\n", entrada);
-    printf("Base detectada: %d\n", base);
-    printf("Decimal equivalente: %d\n", numero);
-
-    char* bin = decimalParaBinario(numero, bits);
-    printf("Binário (%d bits): %s\n", bits, bin);
-
-    free(bin);
-}
 
 // Função auxiliar que detecta a base e chama decimalParaBinario
 char* qualquerBaseParaBinario(const char* entrada, int bits) {
