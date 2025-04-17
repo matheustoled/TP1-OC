@@ -16,3 +16,4 @@ sh x6, 16(x7)
 sw x8, 20(x9)
 beq x10, x11, 8
 bne x12, x13, -4
+addi x12, x13, -243

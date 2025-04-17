@@ -32,3 +32,8 @@ addi x3, x2, 0b11111111111111111111111100001101 # Base binária
 addi x3, x2, 03777777035 # Base octal
 addi x3, x2, 0xFFFFFF0D   # Base hexadecimal
 addi x3, x2, -243         # Base decimal
+
+addi x3, x2, 0b11111111111111111111111100001101 # Base binária
+addi x3, x2, 03777777035 # Base octal
+addi x3, x2, 0xFFFFFF0D   # Base hexadecimal
+addi x3, x2, -4         # Base decimal
