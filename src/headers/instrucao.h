@@ -53,7 +53,7 @@ typedef struct InstucaoFormatoB {
     char opcode[8];
 } InstrucaoFormatoB;
 
-char *decimalParaBinario(int numero, int bits);
+char* converterParaBinario(const char *entrada, int bits);
 
 void preencherInstrucaoR(InstrucaoFormatoR *instrucaoR, char *linha);
 void preencherInstrucaoI(InstrucaoFormatoI *instrucaoI, char *linha);

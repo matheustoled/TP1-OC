@@ -55,7 +55,8 @@ void verificarEConverter(const char* entrada, int bits) {
 char* qualquerBaseParaBinario(const char* entrada, int bits) {
     int base = 10;
     int offset = 0;
-
+    
+    printf("\nEntrou\n");
     // Detecta a base com base no prefixo
     if (entrada[0] == '0') {
         if (entrada[1] == 'x' || entrada[1] == 'X') {
@@ -160,25 +161,30 @@ void preencherInstrucaoI(InstrucaoFormatoI *instrucaoI, char *linha) {
     char *rs1_str = NULL;
     int rs1, imediato;
 
+    char *offset_str = NULL;
+    char *imm_str = NULL;
+
     if (strcmp(instrucao, "lb") == 0 || strcmp(instrucao, "lh") == 0 || strcmp(instrucao, "lw") == 0) {
-        char *offset_str = strtok(NULL, "(");
+        offset_str = strtok(NULL, "(");
         rs1_str = strtok(NULL, ")");
+
         if (offset_str == NULL || rs1_str == NULL) return;
 
-        imediato = atoi(offset_str);
-        rs1 = atoi(rs1_str + 1);
+        rs1 = atoi(rs1_str + 1);  
+
+        imm_str = offset_str;  
     } else {
         rs1_str = strtok(NULL, " ,");
-        char *imm_str = strtok(NULL, " ,");
+        imm_str = strtok(NULL, " ,");
+
         if (rs1_str == NULL || imm_str == NULL) return;
 
         rs1 = atoi(rs1_str + 1);
-        imediato = atoi(imm_str);
     }
 
     char *rd_bin = decimalParaBinario(rd, 5);
     char *rs1_bin = decimalParaBinario(rs1, 5);
-    char *imm_bin = verificarEConverter(imediato, 12);
+    char *imm_bin = qualquerBaseParaBinario(imm_str, 12);
 
     strcpy(instrucaoI->rd, rd_bin);
     strcpy(instrucaoI->rs1, rs1_bin);
@@ -456,7 +462,6 @@ void imprimirInstrucaoBionaria1(FormatoInstrucao formato, void *instrucao){
             printf("Formato de instrucao desconhecido.\n");
             return;
     }
-
     if (binario != NULL) {
         printf("Instrucao em binario: %s\n", binario);
         free(binario);
